@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.LoginFilter;
 import android.util.Log;
@@ -19,6 +20,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 
 import com.example.shogun.universityapplication.fragments.LoginFragment;
+import com.example.shogun.universityapplication.fragments.MainFragment;
 import com.example.shogun.universityapplication.fragments.RegisterFragment;
 
 import butterknife.BindView;
@@ -27,10 +29,7 @@ import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    @BindView(R.id.btnLogin)
-    Button btnLogin;
-    @BindView(R.id.btnRegister)
-    Button btnRegister;
+
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -38,6 +37,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        MainFragment fragment = new MainFragment();
+        getSupportFragmentManager().beginTransaction().add(R.id.fragment_container,fragment).commit();
         ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -50,26 +51,14 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        btnLogin = (Button) findViewById(R.id.btnLogin);
-        btnRegister = (Button) findViewById(R.id.btnRegister);
+
 
     }
 
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                loginUser();
-            }
-        });
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                registerUser();
-            }
-        });
+
     }
 
     @Override
@@ -124,20 +113,12 @@ public class MainActivity extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+
         return true;
     }
 
-    @OnClick(R.id.btnLogin)
-    void loginUser() {
-        Log.d(TAG, "loginUser: click loginBUtton");
-        LoginFragment loginFragment = new LoginFragment();
-        getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, loginFragment).commit();
-    }
 
-    void registerUser() {
-        Log.d(TAG, "RegisterUser: click registerButton");
-        RegisterFragment registerFragment = new RegisterFragment();
-        getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, registerFragment).commit();
 
-    }
+
+
 }
