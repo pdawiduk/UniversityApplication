@@ -13,6 +13,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.shogun.universityapplication.MainActivity;
 import com.example.shogun.universityapplication.R;
 
 public class LoginFragment extends Fragment {
@@ -36,14 +37,12 @@ public class LoginFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
+        ((MainActivity) getActivity()).getActionBar();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         return inflater.inflate(R.layout.fragment_login, container, false);
     }
 

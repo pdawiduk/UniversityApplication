@@ -131,13 +131,13 @@ public class MainActivity extends AppCompatActivity
     void loginUser() {
         Log.d(TAG, "loginUser: click loginBUtton");
         LoginFragment loginFragment = new LoginFragment();
-        getSupportFragmentManager().beginTransaction().addToBackStack(null).add(R.id.fragment_container, loginFragment).commit();
+        getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, loginFragment).commit();
     }
 
     void registerUser() {
         Log.d(TAG, "RegisterUser: click registerButton");
         RegisterFragment registerFragment = new RegisterFragment();
-        getSupportFragmentManager().beginTransaction().addToBackStack(null).add(R.id.fragment_container, registerFragment).commit();
+        getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, registerFragment).commit();
 
     }
 }
