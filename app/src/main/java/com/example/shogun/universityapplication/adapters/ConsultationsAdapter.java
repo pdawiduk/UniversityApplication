@@ -12,6 +12,8 @@ import com.example.shogun.universityapplication.R;
 
 import java.util.List;
 
+import butterknife.BindView;
+
 /**
  * Created by Shogun on 04.11.2016.
  */
