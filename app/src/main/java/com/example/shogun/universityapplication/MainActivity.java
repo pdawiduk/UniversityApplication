@@ -35,10 +35,11 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ///assaddsadasdasdsa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         MainFragment fragment = new MainFragment();
-        getSupportFragmentManager().beginTransaction().add(R.id.fragment_container,fragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,fragment).commit();
         ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
