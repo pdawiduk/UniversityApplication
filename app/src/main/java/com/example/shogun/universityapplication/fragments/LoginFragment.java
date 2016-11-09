@@ -1,7 +1,7 @@
 package com.example.shogun.universityapplication.fragments;
 
 import android.content.Context;
-import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -9,10 +9,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.shogun.universityapplication.MainActivity;
 import com.example.shogun.universityapplication.R;
+import com.example.shogun.universityapplication.domain.User;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class LoginFragment extends Fragment {
 
@@ -24,6 +39,7 @@ public class LoginFragment extends Fragment {
 
     String mail;
     String password;
+
 
     public LoginFragment() {
         // Required empty public constructor
@@ -69,7 +85,8 @@ public class LoginFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-
+        final LoginUser loginUser = new LoginUser();
+        final GetAccount getAccount = new GetAccount();
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,22 +94,153 @@ public class LoginFragment extends Fragment {
 
                 mail = etMail.getText().toString();
                 password = etPassword.getText().toString();
+                String tokenValue = null;
+                String account = null;
+                String token;
+                JSONObject userJSON = null;
 
-                if(mail.contains("@edu")){
-                    StudentFragment studentFragment = new StudentFragment();
-                    ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, studentFragment).commit();
+                try {
+                    token = loginUser.execute(mail,password,String.valueOf(false)).get();
+                    JSONObject tokenJSON = new JSONObject(token);
+                    tokenValue = tokenJSON.getString("id_token");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
-                else if(mail.contains("@p.lodz.pl")){
-                    TeacherFragment teacherFragment = new TeacherFragment();
-                    ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, teacherFragment).commit();
+
+
+
+                try {
+                    account = getAccount.execute(String.valueOf(tokenValue)).get();
+                    userJSON = new JSONObject(account);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("To jest account: " + account);
+
+                User user = new User();
+                try {
+                    user.setLogin(userJSON.getString("login"));
+                    user.setFirstName(userJSON.getString("firstName"));
+                    user.setLastName(userJSON.getString("lastName"));
+                    user.setEmail(userJSON.getString("email"));
+                    user.setActivated(userJSON.getBoolean("activated"));
+                    user.setLangKey(userJSON.getString("langKey"));
+                    JSONArray jsonArray = userJSON.getJSONArray("authorities");
+                    Set<String> authoritySet = new HashSet<>();
+                    for (int i = 0; i < jsonArray.length();i++) {
+                        authoritySet.add((jsonArray.getString(i)));
+                    }
+                    user.setAuthorities(authoritySet);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
-                else{
-                    Toast.makeText(getContext(), "nie poprawny email", Toast.LENGTH_SHORT).show();
-                }
+                    if(user.getAuthorities().contains("ROLE_ADMIN") && user.getAuthorities().contains("ROLE_USER")) {
+                        TeacherFragment teacherFragment = new TeacherFragment();
+                        ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, teacherFragment).commit();
+                    } else if(user.getAuthorities().contains("ROLE_USER")) {
+                        StudentFragment studentFragment = new StudentFragment();
+                        ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, studentFragment).commit();
+                    }
+
+
             }
         });
 
     }
+
+    private class LoginUser extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String[] params) {
+            // do above Server call here
+            final MediaType JSON
+                    = MediaType.parse("application/json; charset=utf-8");
+
+            OkHttpClient client = new OkHttpClient();
+
+            String json = null;
+            try {
+                json = new JSONObject().put("username",params[0]).put("password",params[1]).put("rememberMe",params[2]).toString();
+                System.out.println(json);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .url("http://10.7.2.10:8080/api/authenticate")
+                    .post(body)
+                    .build();
+            Response response = null;
+            try {
+                response = client.newCall(request).execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                return response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "some message";
+        }
+
+        @Override
+        protected void onPostExecute(String message) {
+
+        }
+    }
+
+    private class GetAccount extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String[] params) {
+            // do above Server call here
+            final MediaType JSON
+                    = MediaType.parse("application/json; charset=utf-8");
+
+            OkHttpClient client = new OkHttpClient();
+
+            String json = null;
+            try {
+                json = new JSONObject().put("id_token",params[0]).toString();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .url("http://10.7.2.10:8080/api/account")
+                    .addHeader("Authorization","Bearer " + params[0])
+                    .build();
+            Response response = null;
+            try {
+                response = client.newCall(request).execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                return response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "some message";
+        }
+
+        @Override
+        protected void onPostExecute(String message) {
+        }
+    }
+
+
 }

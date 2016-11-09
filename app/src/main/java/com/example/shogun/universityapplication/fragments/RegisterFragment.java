@@ -1,6 +1,7 @@
 package com.example.shogun.universityapplication.fragments;
 
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,7 +14,16 @@ import android.widget.Toast;
 
 import com.example.shogun.universityapplication.R;
 
-import retrofit2.http.POST;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class RegisterFragment extends Fragment {
     EditText etIndexno;
@@ -21,9 +31,9 @@ public class RegisterFragment extends Fragment {
     EditText etPassword;
     Button btnConfirm;
 
-    private static String password;
-    private static String mail;
-    private static String indexNo;
+    String password;
+    String mail;
+    String indexNo;
 
 
     public RegisterFragment() {
@@ -56,18 +66,26 @@ public class RegisterFragment extends Fragment {
         return view;
     }
 
+
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onResume() {
+        super.onResume();
+
         password = etPassword.getText().toString();
         indexNo = etIndexno.getText().toString();
         mail = etMail.getText().toString();
 
+
+        final RegisterUser RegisterUser = new RegisterUser();
+
+
         btnConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if((!password.isEmpty())&&(!mail.isEmpty())&&(!indexNo.isEmpty())){
+                if(true){
                     Toast.makeText(getContext(),"udalo sie", Toast.LENGTH_LONG).show();
+                    RegisterUser.execute(indexNo,password,mail);
+
                 }
                 else{
                     Toast.makeText(getContext()," nie udalo sie", Toast.LENGTH_LONG).show();
@@ -75,8 +93,47 @@ public class RegisterFragment extends Fragment {
             }
         });
     }
-//    private void registerUser(){
-//        @POST
-//
-//    }
+
+    private class RegisterUser extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String[] params) {
+            // do above Server call here
+            final MediaType JSON
+                    = MediaType.parse("application/json; charset=utf-8");
+
+            OkHttpClient client = new OkHttpClient();
+
+            String json = null;
+            try {
+                json = new JSONObject().put("login","test").put("password","test").put("email","test@edu.p.lodz.pl").toString();
+                System.out.println(json);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            RequestBody body = RequestBody.create(JSON, json);
+            Request request = new Request.Builder()
+                    .url("http://10.7.2.10:8080/api/register")
+                    .post(body)
+                    .build();
+            Response response = null;
+            try {
+                response = client.newCall(request).execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                return response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "some message";
+        }
+
+        @Override
+        protected void onPostExecute(String message) {
+            System.out.println(message);
+        }
+    }
 }
