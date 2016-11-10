@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.shogun.universityapplication.MainActivity;
 import com.example.shogun.universityapplication.R;
@@ -30,8 +31,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class LoginFragment extends Fragment {
-
-    private String URL = "10.0.2.2:8081";
 
     EditText etMail;
     EditText etPassword;
@@ -85,8 +84,7 @@ public class LoginFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        final LoginUser loginUser = new LoginUser();
-        final GetAccount getAccount = new GetAccount();
+
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -98,6 +96,8 @@ public class LoginFragment extends Fragment {
                 String account = null;
                 String token;
                 JSONObject userJSON = null;
+                LoginUser loginUser = new LoginUser();
+                GetAccount getAccount = new GetAccount();
 
                 try {
                     token = loginUser.execute(mail,password,String.valueOf(false)).get();
@@ -105,12 +105,14 @@ public class LoginFragment extends Fragment {
                     tokenValue = tokenJSON.getString("id_token");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    Toast.makeText(getContext(),"Cannot log in", Toast.LENGTH_LONG).show();
                 } catch (ExecutionException e) {
+                    Toast.makeText(getContext(),"Cannot log in", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 } catch (JSONException e) {
                     e.printStackTrace();
+                    Toast.makeText(getContext(),"Wrong login/password or account is not activated", Toast.LENGTH_LONG).show();
                 }
-
 
 
 
@@ -144,10 +146,10 @@ public class LoginFragment extends Fragment {
                     e.printStackTrace();
                 }
 
-                    if(user.getAuthorities().contains("ROLE_ADMIN") && user.getAuthorities().contains("ROLE_USER")) {
+                    if((user.getAuthorities().contains("ROLE_ADMIN") && user.getAuthorities().contains("ROLE_USER")) || user.getAuthorities().contains("ROLE_TEACHER")) {
                         TeacherFragment teacherFragment = new TeacherFragment();
                         ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, teacherFragment).commit();
-                    } else if(user.getAuthorities().contains("ROLE_USER")) {
+                    } else if(user.getAuthorities().contains("ROLE_USER") || user.getAuthorities().contains("ROLE_STUDENT")) {
                         StudentFragment studentFragment = new StudentFragment();
                         ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, studentFragment).commit();
                     }
@@ -168,6 +170,7 @@ public class LoginFragment extends Fragment {
 
             OkHttpClient client = new OkHttpClient();
 
+
             String json = null;
             try {
                 json = new JSONObject().put("username",params[0]).put("password",params[1]).put("rememberMe",params[2]).toString();
@@ -178,7 +181,7 @@ public class LoginFragment extends Fragment {
 
             RequestBody body = RequestBody.create(JSON, json);
             Request request = new Request.Builder()
-                    .url("http://10.7.2.10:8080/api/authenticate")
+                    .url("http://192.168.0.103:8080/api/authenticate")
                     .post(body)
                     .build();
             Response response = null;
@@ -220,7 +223,7 @@ public class LoginFragment extends Fragment {
 
             RequestBody body = RequestBody.create(JSON, json);
             Request request = new Request.Builder()
-                    .url("http://10.7.2.10:8080/api/account")
+                    .url("http://192.168.0.103:8080/api/account")
                     .addHeader("Authorization","Bearer " + params[0])
                     .build();
             Response response = null;

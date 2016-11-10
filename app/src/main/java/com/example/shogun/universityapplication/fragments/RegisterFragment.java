@@ -12,12 +12,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.shogun.universityapplication.MainActivity;
 import com.example.shogun.universityapplication.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -71,26 +73,46 @@ public class RegisterFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        password = etPassword.getText().toString();
-        indexNo = etIndexno.getText().toString();
-        mail = etMail.getText().toString();
 
 
-        final RegisterUser RegisterUser = new RegisterUser();
+
+
 
 
         btnConfirm.setOnClickListener(new View.OnClickListener() {
+
+
             @Override
             public void onClick(View view) {
-                if(true){
-                    Toast.makeText(getContext(),"udalo sie", Toast.LENGTH_LONG).show();
-                    RegisterUser.execute(indexNo,password,mail);
+                password = etPassword.getText().toString();
+                indexNo = etIndexno.getText().toString();
+                mail = etMail.getText().toString();
+                RegisterUser registerUser = new RegisterUser();
+                String response = null;
 
+
+                try {
+                    response = registerUser.execute(indexNo, password, mail).get();
+                    System.out.println(response);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), "Error", Toast.LENGTH_LONG).show();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), "Error", Toast.LENGTH_LONG).show();
                 }
-                else{
-                    Toast.makeText(getContext()," nie udalo sie", Toast.LENGTH_LONG).show();
+
+                if(response.isEmpty()){
+                    LoginFragment loginFragment = new LoginFragment();
+                    ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, loginFragment).commit();
+                    Toast.makeText(getContext(),"Account created. Please log in",Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getContext(),"Wronga data. Try again",Toast.LENGTH_LONG).show();
                 }
+
             }
+
+
         });
     }
 
@@ -106,7 +128,7 @@ public class RegisterFragment extends Fragment {
 
             String json = null;
             try {
-                json = new JSONObject().put("login","test").put("password","test").put("email","test@edu.p.lodz.pl").toString();
+                json = new JSONObject().put("login",params[0]).put("password",params[1]).put("email",params[2]).toString();
                 System.out.println(json);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -114,7 +136,7 @@ public class RegisterFragment extends Fragment {
 
             RequestBody body = RequestBody.create(JSON, json);
             Request request = new Request.Builder()
-                    .url("http://10.7.2.10:8080/api/register")
+                    .url("http://192.168.0.103:8080/api/register")
                     .post(body)
                     .build();
             Response response = null;
@@ -133,7 +155,6 @@ public class RegisterFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String message) {
-            System.out.println(message);
+
         }
-    }
-}
+}}
