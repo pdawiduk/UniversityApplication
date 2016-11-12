@@ -14,6 +14,8 @@ import android.widget.Toast;
 import com.example.shogun.universityapplication.MainActivity;
 import com.example.shogun.universityapplication.R;
 import com.example.shogun.universityapplication.domain.User;
+import com.example.shogun.universityapplication.requests.GetAccount;
+import com.example.shogun.universityapplication.requests.LoginUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -148,6 +150,9 @@ public class LoginFragment extends Fragment {
 
                     if((user.getAuthorities().contains("ROLE_ADMIN") && user.getAuthorities().contains("ROLE_USER")) || user.getAuthorities().contains("ROLE_TEACHER")) {
                         TeacherFragment teacherFragment = new TeacherFragment();
+                        Bundle args = new Bundle();
+                        args.putString("token",tokenValue);
+                        teacherFragment.setArguments(args);
                         ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, teacherFragment).commit();
                     } else if(user.getAuthorities().contains("ROLE_USER") || user.getAuthorities().contains("ROLE_STUDENT")) {
                         StudentFragment studentFragment = new StudentFragment();
@@ -159,91 +164,4 @@ public class LoginFragment extends Fragment {
         });
 
     }
-
-    private class LoginUser extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String[] params) {
-            // do above Server call here
-            final MediaType JSON
-                    = MediaType.parse("application/json; charset=utf-8");
-
-            OkHttpClient client = new OkHttpClient();
-
-
-            String json = null;
-            try {
-                json = new JSONObject().put("username",params[0]).put("password",params[1]).put("rememberMe",params[2]).toString();
-                System.out.println(json);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            RequestBody body = RequestBody.create(JSON, json);
-            Request request = new Request.Builder()
-                    .url("http://192.168.0.103:8080/api/authenticate")
-                    .post(body)
-                    .build();
-            Response response = null;
-            try {
-                response = client.newCall(request).execute();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                return response.body().string();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return "some message";
-        }
-
-        @Override
-        protected void onPostExecute(String message) {
-
-        }
-    }
-
-    private class GetAccount extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String[] params) {
-            // do above Server call here
-            final MediaType JSON
-                    = MediaType.parse("application/json; charset=utf-8");
-
-            OkHttpClient client = new OkHttpClient();
-
-            String json = null;
-            try {
-                json = new JSONObject().put("id_token",params[0]).toString();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            RequestBody body = RequestBody.create(JSON, json);
-            Request request = new Request.Builder()
-                    .url("http://192.168.0.103:8080/api/account")
-                    .addHeader("Authorization","Bearer " + params[0])
-                    .build();
-            Response response = null;
-            try {
-                response = client.newCall(request).execute();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                return response.body().string();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return "some message";
-        }
-
-        @Override
-        protected void onPostExecute(String message) {
-        }
-    }
-
-
 }
