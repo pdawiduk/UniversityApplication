@@ -18,6 +18,8 @@ import okhttp3.Response;
  */
 public class GetAccount extends AsyncTask<String, Void, String> {
 
+    private static final String URL = "http://10.7.2.10:8080";
+
     @Override
     protected String doInBackground(String[] params) {
         // do above Server call here
@@ -35,7 +37,7 @@ public class GetAccount extends AsyncTask<String, Void, String> {
 
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
-                .url("http://192.168.0.103:8080/api/account")
+                .url(URL + "/api/account")
                 .addHeader("Authorization","Bearer " + params[0])
                 .build();
         Response response = null;

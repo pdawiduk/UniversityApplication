@@ -9,6 +9,7 @@ import java.util.Set;
 public class Consultation{
 
 
+    private int id;
     private String dateTime;
 
 
@@ -30,11 +31,20 @@ public class Consultation{
         return this;
     }
 
-    public Consultation(String dateTime, Boolean cancelled, User teacher, Set<String> registeredStudents) {
+    public Consultation(int id, String dateTime, Boolean cancelled, User teacher, Set<String> registeredStudents) {
+        this.id = id;
         this.dateTime = dateTime;
         this.cancelled = cancelled;
         this.teacher = teacher;
         this.registeredStudents = registeredStudents;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setDateTime(String dateTime) {

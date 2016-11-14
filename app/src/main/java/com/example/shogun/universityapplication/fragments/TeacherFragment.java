@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import com.example.shogun.universityapplication.MainActivity;
 import com.example.shogun.universityapplication.R;
 import com.example.shogun.universityapplication.adapters.ConsultationsAdapter;
 import com.example.shogun.universityapplication.domain.Consultation;
@@ -25,7 +26,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -42,9 +46,10 @@ public class TeacherFragment extends Fragment {
     RecyclerView recyclerView;
     String token;
     JSONArray consultationJSON;
-    ArrayList<Consultation> consultations = new ArrayList<>();
+
     private JSONObject userJSON;
     private String account;
+    private int consultationId;
 
     public TeacherFragment() {
 
@@ -95,6 +100,7 @@ public class TeacherFragment extends Fragment {
         GetConsultations getConsultations = new GetConsultations();
         GetAccount getAccount = new GetAccount();
         JSONObject jsonObject = null;
+        ArrayList<Consultation> consultations = new ArrayList<>();
         try {
             String result = getConsultations.execute(token).get();
             System.out.println("To jest result: " + result);
@@ -136,12 +142,20 @@ public class TeacherFragment extends Fragment {
             e.printStackTrace();
         }
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        SimpleDateFormat output = new SimpleDateFormat("HH:mm:ss dd-MM-yyyy ");
+
+
         for(int i = 0; i < consultationJSON.length(); i++) {
 
             try {
                 jsonObject = consultationJSON.getJSONObject(i);
+                consultationId = jsonObject.getInt("id");
                 String dateTime = jsonObject.getString("dateTime");
+                Date d = sdf.parse(dateTime);
+                String formattedTime = output.format(d);
                 /*boolean cancelled = jsonObject.getBoolean("cancelled");*/
+                String teacherLogin = jsonObject.getString("teacherLogin");
                 JSONArray jsonArray = jsonObject.getJSONArray("registeredStudents");
                 Set<String> registeredStudents = new HashSet<>();
                 for (int j = 0; j < jsonArray.length();j++) {
@@ -149,8 +163,10 @@ public class TeacherFragment extends Fragment {
                     registeredStudents.add(student.getString("firstName") + " " + student.getString("lastName"));
                 }
 
-                consultations.add(new Consultation(dateTime,false,teacher,registeredStudents));
+                consultations.add(new Consultation(consultationId,formattedTime,false,teacher,registeredStudents));
             } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
                 e.printStackTrace();
             }
 
@@ -159,13 +175,11 @@ public class TeacherFragment extends Fragment {
         for (Consultation consultation:consultations) {
             cosnultationList.add(consultation.getDateTime());
         }
-        ConsultationsAdapter adapter = new ConsultationsAdapter(getContext(),cosnultationList);
+        ConsultationsAdapter adapter = new ConsultationsAdapter(getContext(),consultations,getActivity(),consultationId,token);
         recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager manager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
-
-
     }
 
     @Override

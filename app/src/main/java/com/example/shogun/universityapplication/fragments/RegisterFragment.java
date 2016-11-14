@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.example.shogun.universityapplication.MainActivity;
 import com.example.shogun.universityapplication.R;
+import com.example.shogun.universityapplication.requests.RegisterUser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,11 +75,6 @@ public class RegisterFragment extends Fragment {
         super.onResume();
 
 
-
-
-
-
-
         btnConfirm.setOnClickListener(new View.OnClickListener() {
 
 
@@ -102,12 +98,12 @@ public class RegisterFragment extends Fragment {
                     Toast.makeText(getContext(), "Error", Toast.LENGTH_LONG).show();
                 }
 
-                if(response.isEmpty()){
+                if (response.isEmpty()) {
                     LoginFragment loginFragment = new LoginFragment();
                     ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.fragment_container, loginFragment).commit();
-                    Toast.makeText(getContext(),"Account created. Please log in",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Account created. Please log in", Toast.LENGTH_LONG).show();
                 } else {
-                    Toast.makeText(getContext(),"Wronga data. Try again",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), "Wronga data. Try again", Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -116,45 +112,4 @@ public class RegisterFragment extends Fragment {
         });
     }
 
-    private class RegisterUser extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String[] params) {
-            // do above Server call here
-            final MediaType JSON
-                    = MediaType.parse("application/json; charset=utf-8");
-
-            OkHttpClient client = new OkHttpClient();
-
-            String json = null;
-            try {
-                json = new JSONObject().put("login",params[0]).put("password",params[1]).put("email",params[2]).toString();
-                System.out.println(json);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            RequestBody body = RequestBody.create(JSON, json);
-            Request request = new Request.Builder()
-                    .url("http://192.168.0.103:8080/api/register")
-                    .post(body)
-                    .build();
-            Response response = null;
-            try {
-                response = client.newCall(request).execute();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                return response.body().string();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return "some message";
-        }
-
-        @Override
-        protected void onPostExecute(String message) {
-
-        }
-}}
+}
